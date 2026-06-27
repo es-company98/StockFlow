@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B3D2E">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://www.gstatic.com;">
+<link rel="manifest" href="manifest.json">
+<title>Pertes — StockFlow</title>
+<link rel="stylesheet" href="css/finances.css">
+<script src="js/ui.js" defer></script>
+<script src="js/nav.js" defer></script>
+<script src="js/pwa.js" defer></script>
+</head>
+<body>
+
+<header>
+  <h3>StockFlow — Pertes</h3>
+  <div class="status" id="status">● Online</div>
+</header>
+
+<div class="container">
+  <a class="back-link" href="finances.html">← Finances</a>
+  <div id="debug" style="color:#c0392b;font-size:13px"></div>
+
+  <div class="form-box">
+    <h3>Perte produit</h3>
+    <select id="productSelect"></select>
+    <input type="number" id="productQuantityLost" placeholder="Quantité" min="1" step="1">
+    <select id="productLossReason">
+      <option value="loss">Perte</option>
+      <option value="break">Casse</option>
+      <option value="stock_error">Erreur stock</option>
+    </select>
+    <button type="button" class="btn" id="submitProductLoss">Valider Perte produit</button>
+
+    <hr style="margin:15px 0">
+
+    <h3>Perte argent</h3>
+    <input type="number" id="moneyLostAmount" placeholder="Montant" min="0" step="0.01">
+    <select id="moneyLossReason">
+      <option value="vol">Vol</option>
+      <option value="faux_billet">Faux billet</option>
+      <option value="erreur_caisse">Erreur caisse</option>
+      <option value="other">Autre</option>
+    </select>
+    <button type="button" class="btn" id="submitMoneyLoss">Valider Perte argent</button>
+  </div>
+
+  <div class="form-box filters-box">
+    <h3>Filtres</h3>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="startDate">Date début</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="filter-group">
+        <label for="endDate">Date fin</label>
+        <input type="date" id="endDate">
+      </div>
+      <div class="filter-group">
+        <label for="searchInput">Recherche</label>
+        <input type="text" id="searchInput" placeholder="Raison, catégorie...">
+      </div>
+    </div>
+    <div class="filters-actions">
+      <button type="button" class="filter-btn" id="applyFirebaseFilter">Appliquer filtres</button>
+    </div>
+  </div>
+
+  <div class="list" id="recordsList"></div>
+</div>
+
+<div id="lossCorrectionModal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <h3>Correction de Perte</h3>
+    <label for="lossCorrectionQty">Quantité à corriger (+ uniquement)</label>
+    <input type="number" id="lossCorrectionQty" min="1" step="1">
+    <div id="lossCorrectionExpirationField" class="field-hidden">
+      <label for="lossCorrectionExpirationDate">Date expiration (optionnel)</label>
+      <input type="date" id="lossCorrectionExpirationDate">
+    </div>
+    <div class="modal-error" id="lossCorrectionError"></div>
+    <div class="modal-actions">
+      <button type="button" id="lossCorrectionSaveBtn" class="modal-save">Valider</button>
+      <button type="button" id="lossCorrectionCancelBtn" class="modal-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item" data-page="index.html">🛒 Vente</a>
+  <a href="products.html" class="nav-item" data-page="products.html">📦 Produits</a>
+  <a href="purchases.html" class="nav-item" data-page="purchases.html">📥 Achats</a>
+  <a href="finances.html" class="nav-item active" data-page="finances.html">💰 Finances</a>
+  <a href="stats.html" class="nav-item" data-page="stats.html">📊 Stats</a>
+</nav>
+
+<script type="module" src="js/losses.js"></script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+✅ RÈGLE PRO ERP FIREBASE — STOCKFLOW (requêtes actuelles + futures réalistes)
+
+Quand un champ sert souvent de filtre
+ET
+que les résultats sont souvent triés par date
+➡️ champ ASC, createdAt DESC  (ou ASC pour FIFO stock)
+
+Seulement si le champ est réellement utilisé en where() aujourd’hui
+OU filtré côté client avec migration Firestore probable (vendus, finances, stats).
+
+
+---
+
+❌ NE PAS CRÉER (aucune requête, filtre 100 % client ou jamais trié en Firestore)
+
+products → price_buy ASC, createdAt DESC
+products → variant ASC, createdAt DESC
+products → name ASC, createdAt DESC
+sales → deviceId ASC, createdAt DESC
+sales → hasDebt ASC, createdAt DESC        (pas de where hasDebt dans le code)
+sales → offlineActionId ASC, createdAt DESC (where seul sans orderBy date)
+debts → phone ASC, createdAt DESC
+expenses → relatedTo ASC, createdAt DESC
+losses → note ASC, createdAt DESC
+sale_items → productId ASC, createdAt DESC  (pas de where Firestore aujourd’hui)
+purchases → supplier ASC, createdAt DESC    (pas de where aujourd’hui)
+
+
+---
+
+✅ REQUÊTES FIRESTORE ACTUELLES (JS)
+
+sales
+  createdAt >= | <= + orderBy createdAt DESC     → stats.js, vendus.js
+  sellerId == + createdAt >= | <= + orderBy createdAt DESC → stats.js
+
+expenses | losses | purchases | stock_movements
+  createdAt >= | <= + orderBy createdAt DESC     → stats.js, finance/data.js
+
+debts | losses (notifications)
+  orderBy createdAt DESC (+ limit losses)        → stats.js, notifications.js
+
+stock_movements
+  productId ==                                     → index.js, purchases.js, losses.js
+
+sales
+  offlineActionId ==                               → index.js (anti double sync offline)
+
+
+---
+
+✅ VERSION PRO RÉALISTE — PAR COLLECTION
+
+
+📁 products
+(requête actuelle : getDocs collection complète — aucun where)
+
+simples — utiles seulement si migration future liste/filtre serveur
+isActive ASC
+createdAt DESC
+updatedAt DESC
+
+composites — NON requis aujourd’hui
+(pas de where + orderBy date dans le code)
+
+
+---
+
+📁 sales
+
+simples — requis / auto
+createdAt ASC
+createdAt DESC
+offlineActionId ASC
+
+composites — OBLIGATOIRES (code en production)
+sellerId ASC, createdAt DESC
+
+composites — CRITIQUES (filtres vendus.js aujourd’hui client → migration Firestore probable)
+payment_status ASC, createdAt DESC
+status ASC, createdAt DESC
+
+analytics — réel si stats + vendus unifiés serveur
+sellerId ASC, payment_status ASC, createdAt DESC
+
+
+---
+
+📁 sale_items
+
+simples
+(suffisant pour ranging.js limit 500 sans where)
+
+composites — NON requis aujourd’hui
+
+futur probable si détail vente par saleId
+saleId ASC, createdAt DESC
+
+
+---
+
+📁 stock_movements
+
+simples — requis / auto
+createdAt ASC
+createdAt DESC
+productId ASC
+
+composites — OBLIGATOIRES (stats.js période)
+productId ASC, createdAt DESC
+
+composites — CRITIQUES (FIFO expiration + audit — requête actuelle productId == sans orderBy, tri client)
+productId ASC, createdAt ASC
+
+composites — futurs si filtres loader/stats migrés serveur
+type ASC, createdAt DESC
+reason ASC, createdAt DESC
+createdBy ASC, createdAt DESC
+
+audit futur
+productId ASC, type ASC, createdAt DESC
+
+
+---
+
+📁 purchases
+
+simples — requis (stats.js)
+createdAt ASC
+createdAt DESC
+
+composites — NON requis aujourd’hui
+
+
+---
+
+📁 purchase_items
+
+simples
+(pas de where Firestore)
+
+composites — NON requis aujourd’hui
+
+
+---
+
+📁 expenses
+(ancien expensess.genre = "expense" — collection séparée)
+
+simples — requis (stats.js + finance/data.js)
+createdAt ASC
+createdAt DESC
+
+composites — CRITIQUES (expenses.js filtre category + date Firestore déjà possible)
+category ASC, createdAt DESC
+
+composites — futurs (filtres page Dépenses)
+status ASC, createdAt DESC
+createdBy ASC, createdAt DESC
+type ASC, createdAt DESC
+
+
+---
+
+📁 debts
+(ancien expensess.genre = "debt" — collection séparée)
+
+simples — requis
+createdAt DESC
+DueDate ASC
+relatedSaleId ASC
+
+composites — CRITIQUES (debts.js filtre status + tri date)
+status ASC, createdAt DESC
+
+composites — CRITIQUES (suivi échéances + notifications)
+status ASC, DueDate ASC
+
+composites — futurs (debts.js filtre client/fournisseur)
+category ASC, createdAt DESC
+
+dettes ouvertes par vente (vendus.js aujourd’hui client)
+relatedSaleId ASC, status ASC
+
+
+---
+
+📁 losses
+(ancien expensess.genre = "loss" — collection séparée)
+
+simples — requis (stats.js + finance/data.js + notifications)
+createdAt ASC
+createdAt DESC
+
+composites — CRITIQUES (filtres page Pertes futurs)
+status ASC, createdAt DESC
+category ASC, createdAt DESC
+
+composites — futurs (pertes produit)
+productId ASC, createdAt DESC
+createdBy ASC, createdAt DESC
+
+
+---
+
+📁 users | logs | settings | appConfig
+getDoc / getDocs sans where composite → pas d’index composite à créer
+
+
+---
+
+✅ firestore.indexes.json — MINIMUM PRODUCTION (code actuel)
+
+{
+  "indexes": [
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sellerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+
+
+---
+
+✅ firestore.indexes.json — COMPLET PRO (actuel + futures réalistes StockFlow)
+
+{
+  "indexes": [
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sellerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "payment_status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sellerId", "order": "ASCENDING" },
+        { "fieldPath": "payment_status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stock_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "productId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stock_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "productId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stock_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stock_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "productId", "order": "ASCENDING" },
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "DueDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "losses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "losses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "losses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "productId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+
+
+---
+
+✅ RÉCAP ASC / DESC — COPIER CONSOLE FIREBASE
+
+sales
+  createdAt DESC
+  sellerId ASC, createdAt DESC
+  payment_status ASC, createdAt DESC
+  status ASC, createdAt DESC
+  sellerId ASC, payment_status ASC, createdAt DESC
+
+stock_movements
+  createdAt DESC
+  productId ASC, createdAt ASC
+  productId ASC, createdAt DESC
+  type ASC, createdAt DESC
+  productId ASC, type ASC, createdAt DESC
+
+expenses
+  createdAt DESC
+  category ASC, createdAt DESC
+  status ASC, createdAt DESC
+
+debts
+  createdAt DESC
+  DueDate ASC
+  status ASC, createdAt DESC
+  status ASC, DueDate ASC
+  category ASC, createdAt DESC
+
+losses
+  createdAt DESC
+  status ASC, createdAt DESC
+  category ASC, createdAt DESC
+  productId ASC, createdAt DESC
+
+purchases
+  createdAt DESC
+
+
+---
+
+✅ CONCLUSION PRO STOCKFLOW
+
+Ton intuition est correcte : dans cet ERP, les filtres finissent presque toujours avec createdAt DESC.
+
+Mais après split expenses / debts / losses :
+  ❌ plus de genre ASC, createdAt DESC  (collection expensess supprimée)
+  ✅ remplacer par status / category ASC, createdAt DESC par collection
+
+Priorité déploiement :
+  1. sellerId ASC, createdAt DESC          (stats.js — bloquant si filtre vendeur)
+  2. productId ASC, createdAt ASC          (FIFO stock_movements — perf)
+  3. status ASC, DueDate ASC               (debts — échéances)
+  4. le reste                                (avant migration filtres vendus/finances côté Firestore)

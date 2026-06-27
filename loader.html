@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Es-Shop Stats</title>
+
+<style>
+/* RESET */
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+/* BODY */
+body{
+  font-family: Arial, sans-serif;
+  background:#f5f7fa;
+  padding:20px;
+  padding-bottom:80px; /* 🔥 espace pour nav */
+  overflow-y:auto;
+}
+header {
+      background: #0B3D2E;
+      color: white;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header .status { font-size: 12px; color: #D4AF37; }
+
+    .search-bar {
+      padding: 10px;
+      position: sticky;
+      top: 0;
+      background: #F5F5F5;
+      z-index: 10;
+    }
+
+/* TITRE */
+h2{
+  margin-bottom:15px;
+}
+
+/* GRID SCROLLABLE */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:10px;
+}
+
+/* CARD */
+.card{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* TEXT */
+.big{
+  font-size:22px;
+  font-weight:bold;
+}
+
+small{
+  color:#666;
+}
+
+/* DEBUG */
+#debug{
+  margin-bottom:10px;
+  color:red;
+  font-size:13px;
+}
+
+.kpi{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid rgba(0,0,0,0.05);
+}
+
+.kpi:last-child{
+  border-bottom:none;
+}
+
+.kpi-label{
+  font-size:13px;
+  color:#444;
+}
+
+/* 🔥 NAV FIXED (NE SCROLL PAS) */
+nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:65px;
+
+  background:#111;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+
+  color:white;
+  z-index:9999;
+
+  border-top:1px solid rgba(255,255,255,0.1);
+}
+
+/* NAV ITEMS (DIV + A COMPATIBLE) */
+nav .nav-item{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  font-size:11px;
+  cursor:pointer;
+
+  text-decoration:none; 
+  color:inherit; 
+
+  padding:6px 0;
+  transition:0.2s;
+}
+
+/* ACTIVE */
+nav .nav-item.active{
+  color:#D4AF37;
+  font-weight:bold;
+}
+
+/* HOVER FEEDBACK */
+nav .nav-item:hover{
+  opacity:0.8;
+}
+
+/* CLICK FEEDBACK MOBILE */
+nav .nav-item:active{
+  transform:scale(0.95);
+}
+
+
+/* 🔥 Empêche tout scroll horizontal */
+html, body{
+  overflow-x:hidden;
+}
+.chart{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom:15px;
+}
+
+#chart{
+  width:100%;
+  height:120px;
+}
+/* --- AUTH LINKS --- */
+  .auth-links {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* Base bouton */
+.auth-links .btn,
+.debts-btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s ease;
+  border: 1px solid transparent;
+  display: inline-block;
+}
+
+/* Connexion */
+.auth-links .btn:first-child {
+  background: transparent;
+  color: #0B5FFF;
+  border-color: #0B5FFF;
+}
+
+.auth-links .btn:first-child:hover {
+  background: #0B5FFF;
+  color: white;
+}
+
+/* Inscription */
+.auth-links .btn:last-child {
+  background: #0B5FFF;
+  color: white;
+}
+
+.auth-links .btn:last-child:hover {
+  background: #0847c2;
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h3>StockFlow</h3>
+  <div class="status" id="status">● Online</div>
+</header>
+
+<h2>📊 Es-Shop Global Dashboard</h2>
+<div class="auth-links">
+  <a href="help.html" class="btn">Aide</a>
+  <a href="ranging.html" class="btn">Top 5</a>
+</div>
+<button id="pdfBtn" style="margin-bottom:15px;padding:10px 15px;border:none;background:#0B5FFF;color:white;border-radius:6px;cursor:pointer;">
+  📄 Télécharger PDF
+</button>
+
+<div id="debug" style="margin-bottom:10px;color:red;font-size:13px;"></div>
+
+
+<div class="grid">
+
+    <div class="card">
+  <small>📦 Valeur du stock</small>
+  <div class="big" id="stockValue">0</div>
+</div>
+
+  <div class="card">
+    <small>💰 Chiffre d'affaires</small>
+    <div class="big" id="sales">0</div>
+  </div>
+  
+   <div class="card">
+    <small>⚡ Profit Ideal</small>
+    <div class="big" id="profitIdeal">0</div>
+  </div>
+
+  <div class="card">
+    <small>📈 Profit net</small>
+    <div class="big" id="profit">0</div>
+  </div>
+
+  <div class="card">
+    <small>💸 Dépenses</small>
+    <div class="big" id="expenses">0</div>
+  </div>
+  
+  <div class="card">
+    <small>🔐 Dettes</small>
+    <div class="big" id="debts">0</div>
+  </div>
+  
+  <div class="card">
+    <small>❌ Pertes</small>
+    <div class="big" id="losses">0</div>
+  </div>
+
+  <div class="card">
+    <small>📦 Nombre de ventes</small>
+    <div class="big" id="sold">0</div>
+  </div>
+
+  <div class="card">
+    <small>📊 Stock total (actuel)</small>
+    <div class="big" id="stockTotal">0</div>
+  </div>
+
+  <div class="card">
+    <small>📦 Nombre de produits</small>
+    <div class="big" id="products">0</div>
+  </div>
+  
+  <div class="card">
+  <h3>💰 Chiffre d'affaires périodique</h3>
+
+  <div class="kpi">
+    <span class="kpi-label">💰 CA du jour</span>
+    <span class="big" id="caToday">0</span>
+  </div>
+
+  <div class="kpi">
+    <span class="kpi-label">💰 CA de la semaine</span>
+    <span class="big" id="caWeek">0</span>
+  </div>
+
+  <div class="kpi">
+    <span class="kpi-label">💰 CA du mois</span>
+    <span class="big" id="caMonth">0</span>
+  </div>
+
+  <div class="kpi">
+    <span class="kpi-label">💰 CA de l'année</span>
+    <span class="big" id="caYear">0</span>
+  </div>
+</div>
+
+<div class="chart">
+<canvas id="chart" height="100"></canvas>
+</div>
+
+</div>
+
+<nav class="bottom-nav">
+
+  <a href="index.html"
+     class="nav-item"
+     data-page="index.html">
+     🛒 Vente
+  </a>
+
+  <a href="products.html"
+     class="nav-item"
+     data-page="products.html">
+     📦 Produits
+  </a>
+
+  <a href="finances.html"
+     class="nav-item"
+     data-page="finances.html">
+     💰 Finances
+  </a>
+
+  <a href="stats.html"
+     class="nav-item"
+     data-page="stats.html">
+     📊 Stats
+  </a>
+
+  <a href="pages.html"
+     class="nav-item"
+     data-page="pages.html">
+     🔗 Navigation
+  </a>
+
+</nav>
+
+<script src="js/nav.js"></script>
+
+<script type="module" src="js/loader.js"></script>
+</body>
+</html>

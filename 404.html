@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B3D2E">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data:;font-src 'self';base-uri 'self';form-action 'self';">
+<title>404 - StockFlow</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+min-height:100vh;
+background:#F5F5F5;
+color:#111;
+display:flex;
+flex-direction:column;
+padding-bottom:90px;
+overflow:hidden;
+}
+
+header{
+background:#0B3D2E;
+color:#fff;
+padding:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+header .status{
+font-size:12px;
+color:#D4AF37;
+}
+
+#errorContainer{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+#errorCard{
+width:min(95%,650px);
+background:#fff;
+border-radius:20px;
+padding:30px 20px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,.12);
+animation:fadeIn .7s ease;
+position:relative;
+overflow:hidden;
+}
+
+#errorCard::before{
+content:"";
+position:absolute;
+top:-120px;
+right:-120px;
+width:240px;
+height:240px;
+border-radius:50%;
+background:rgba(11,61,46,.08);
+}
+
+#errorCard::after{
+content:"";
+position:absolute;
+bottom:-100px;
+left:-100px;
+width:200px;
+height:200px;
+border-radius:50%;
+background:rgba(212,175,55,.08);
+}
+
+#errorIcon{
+font-size:70px;
+margin-bottom:15px;
+position:relative;
+z-index:2;
+animation:pulse 2s infinite;
+}
+
+#errorCode{
+font-size:clamp(90px,20vw,180px);
+font-weight:900;
+color:#0B3D2E;
+line-height:1;
+position:relative;
+z-index:2;
+animation:float404 3s ease-in-out infinite;
+}
+
+#errorTitle{
+font-size:28px;
+margin-top:10px;
+margin-bottom:10px;
+position:relative;
+z-index:2;
+}
+
+#errorText{
+font-size:15px;
+color:#666;
+line-height:1.6;
+max-width:500px;
+margin:auto;
+position:relative;
+z-index:2;
+}
+
+#errorActions{
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
+margin-top:25px;
+position:relative;
+z-index:2;
+}
+
+#errorActions a,
+#errorActions button{
+border:none;
+cursor:pointer;
+text-decoration:none;
+padding:12px 18px;
+border-radius:10px;
+font-weight:700;
+font-size:14px;
+transition:.25s;
+}
+
+#homeBtn{
+background:#0B3D2E;
+color:#fff;
+}
+
+#homeBtn:hover{
+transform:translateY(-2px);
+}
+
+#backBtn{
+background:#D4AF37;
+color:#111;
+}
+
+#backBtn:hover{
+transform:translateY(-2px);
+}
+
+#tips{
+margin-top:25px;
+padding:15px;
+background:#F5F5F5;
+border-radius:12px;
+font-size:13px;
+color:#555;
+position:relative;
+z-index:2;
+}
+
+#tips strong{
+display:block;
+margin-bottom:8px;
+color:#0B3D2E;
+}
+
+@keyframes float404{
+0%,100%{
+transform:translateY(0);
+}
+50%{
+transform:translateY(-12px);
+}
+}
+
+@keyframes pulse{
+0%,100%{
+transform:scale(1);
+}
+50%{
+transform:scale(1.15);
+}
+}
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(25px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+nav{
+position:fixed;
+left:0;
+bottom:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+align-items:stretch;
+gap:8px;
+padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+background:#111;
+border-top:1px solid rgba(255,255,255,.08);
+z-index:1000;
+overflow:hidden;
+}
+
+nav .nav-item{
+flex:1;
+min-width:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+gap:4px;
+min-height:52px;
+padding:8px 4px;
+border-radius:10px;
+text-decoration:none;
+color:#E5E5E5;
+font-size:11px;
+font-weight:600;
+text-align:center;
+transition:.2s;
+}
+
+nav .nav-item.active{
+background:rgba(212,175,55,.12);
+color:#D4AF37;
+}
+
+nav .nav-item:active{
+transform:scale(.96);
+}
+
+@media(max-width:600px){
+
+#errorTitle{
+font-size:22px;
+}
+
+#errorText{
+font-size:14px;
+}
+
+#errorActions{
+flex-direction:column;
+}
+
+#errorActions a,
+#errorActions button{
+width:100%;
+}
+}
+
+@media(min-width:768px){
+
+nav{
+max-width:900px;
+left:50%;
+transform:translateX(-50%);
+border-radius:16px 16px 0 0;
+}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h3>StockFlow</h3>
+<div class="status">● Erreur</div>
+</header>
+
+<main id="errorContainer">
+
+<div id="errorCard">
+
+<div id="errorIcon">📦</div>
+
+<div id="errorCode">404</div>
+
+<h1 id="errorTitle">
+Page introuvable
+</h1>
+
+<p id="errorText">
+La page que vous recherchez n'existe pas, a été déplacée ou supprimée.
+</p>
+
+<div id="errorActions">
+
+<a href="index.html" id="homeBtn">
+🛒 Retour aux ventes
+</a>
+
+<button id="backBtn" type="button">
+⬅ Retour
+</button>
+
+</div>
+
+<div id="tips">
+
+<strong>Que faire ?</strong>
+
+Vérifiez l'adresse saisie ou utilisez le menu ci-dessous pour revenir dans StockFlow.
+
+</div>
+
+</div>
+
+</main>
+
+<nav class="bottom-nav">
+
+<a href="index.html" class="nav-item">
+🛒 Vente
+</a>
+
+<a href="products.html" class="nav-item">
+📦 Produits
+</a>
+
+<a href="purchases.html" class="nav-item">
+📥 Achats
+</a>
+
+<a href="finances.html" class="nav-item">
+💰 Finances
+</a>
+
+<a href="stats.html" class="nav-item">
+📊 Stats
+</a>
+
+</nav>
+
+<script>
+const backBtn=document.getElementById("backBtn");
+
+backBtn.addEventListener("click",()=>{
+history.back();
+});
+
+const icons=["📦","🛒","📊","📥","💳"];
+const errorIcon=document.getElementById("errorIcon");
+
+setInterval(()=>{
+errorIcon.textContent=icons[Math.floor(Math.random()*icons.length)];
+},3000);
+</script>
+
+</body>
+</html>

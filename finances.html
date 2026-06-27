@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B3D2E">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://www.gstatic.com;">
+<link rel="manifest" href="manifest.json">
+<title>Finances — StockFlow</title>
+<link rel="stylesheet" href="css/finances.css">
+<script src="js/ui.js" defer></script>
+<script src="js/nav.js" defer></script>
+<script src="js/pwa.js" defer></script>
+</head>
+<body>
+
+<header>
+  <h3>StockFlow — Finances</h3>
+  <div class="status" id="status">● Online</div>
+</header>
+
+<div class="container">
+  <div id="debug" style="color:#c0392b;font-size:13px"></div>
+  <div id="notificationBanner"></div>
+  <div id="debtHubAlert"></div>
+
+  <div class="hub-grid">
+    <a class="hub-card" href="expenses.html">
+      <h3>Dépenses</h3>
+      <p>Charges, salaires, loyers et frais opérationnels.</p>
+    </a>
+    <a class="hub-card" href="debts.html">
+      <h3>Dettes</h3>
+      <p>Créances clients, fournisseurs et échéances.</p>
+    </a>
+    <a class="hub-card" href="losses.html">
+      <h3>Pertes</h3>
+      <p>Pertes produit, casse et pertes financières.</p>
+    </a>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item" data-page="index.html">🛒 Vente</a>
+  <a href="products.html" class="nav-item" data-page="products.html">📦 Produits</a>
+  <a href="purchases.html" class="nav-item" data-page="purchases.html">📥 Achats</a>
+  <a href="finances.html" class="nav-item active" data-page="finances.html">💰 Finances</a>
+  <a href="stats.html" class="nav-item" data-page="stats.html">📊 Stats</a>
+</nav>
+
+<script type="module" src="js/finances.js"></script>
+</body>
+</html>

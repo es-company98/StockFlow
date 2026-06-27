@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' https://www.gstatic.com https://esm.sh;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https:;
+connect-src 'self' 
+  https://*.googleapis.com 
+  https://*.firebaseio.com 
+  https://*.gstatic.com 
+  https://firestore.googleapis.com 
+  https://identitytoolkit.googleapis.com 
+  https://securetoken.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+frame-src 'self' https://*.firebaseapp.com https://accounts.google.com;
+worker-src 'self';
+base-uri 'self';
+form-action 'self' https://wa.me;
+">
+<title>StockFlow - Produits</title>
+
+<style>
+/* --- RESET & GLOBAL --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  overflow-x: hidden;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+}
+
+/* --- HEADER --- */
+header {
+  background: #0B3D2E;
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header h3 { font-size: 16px; width: 100%; }
+
+header .status {
+  font-size: 11px;
+  color: #D4AF37;
+  font-weight: bold;
+}
+
+/* --- CONTAINER --- */
+.container {
+  padding: 0px;
+  width: 100%;
+  min-width:0;
+  overflow-x:hidden;
+}
+
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* --- TABLE --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  min-width:400px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 70px; /* 🔥 éviter overlap nav */
+}
+
+th, td {
+  padding: 4px 2px;
+  text-align: left;
+  font-size: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+th {
+  background: #0B3D2E;
+  color: white;
+}
+thead th{
+  white-space:nowrap;
+  font-size:11px;
+}
+
+th:nth-child(1),
+td:nth-child(1){
+  width:10%;
+  min-width:45px;
+}
+
+th:nth-child(2),
+td:nth-child(2){
+  width:22%;
+  min-width:100px;
+}
+
+th:nth-child(3),
+td:nth-child(3){
+  width:13%;
+  min-width:95px;
+}
+
+th:nth-child(4),
+td:nth-child(4){
+  width:11%;
+  min-width:85px;
+}
+
+th:nth-child(5),
+td:nth-child(5){
+  width:11%;
+  min-width:85px;
+}
+
+th:nth-child(6),
+td:nth-child(6){
+  width:7%;
+  min-width:70px;
+}
+
+th:nth-child(7),
+td:nth-child(7){
+  width:9%;
+  min-width:75px;
+}
+
+th:nth-child(8),
+td:nth-child(8){
+  width:12%;
+  min-width:110px;
+}
+
+tr:hover { background: #f0f8ff; }
+
+.stock-ok { color: green; font-weight: bold; }
+.stock-low { color: red; font-weight: bold; }
+
+/* --- IMAGE MINI --- */
+.product-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  background-color: #ddd;
+}
+
+td:last-child{
+  white-space:normal;
+}
+
+td:last-child .btn{
+  display:block;
+  width:100%;
+  margin: 0;
+}
+
+/* --- BUTTONS --- */
+.btn {
+  padding: 2px;
+  border: none;
+  font-size:10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 9px;
+  margin-right: 4px;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn:hover { transform: translateY(-1px); }
+
+.btn-add { background: #0B3D2E; color: white; }
+.btn-edit { background: #D4AF37; color: white; }
+.btn-delete { background: #C0392B; color: white; }
+
+.add-product {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-product button {
+  background: #0B3D2E;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.add-product button:hover {
+  background: #093022;
+}
+.page {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* --- NAVIGATION --- */
+nav{
+  position:fixed;
+  left:0;
+  bottom:0;
+
+  width:100%;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:stretch;
+  gap:8px;
+
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+
+  background:#111;
+
+  border-top:1px solid rgba(255,255,255,0.08);
+
+  z-index:1000;
+
+  overflow:hidden;
+}
+
+nav .nav-item{
+  flex:1;
+
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center;
+  align-items:center;
+
+  gap:4px;
+
+  min-height:52px;
+
+  padding:8px 4px;
+
+  border-radius:10px;
+
+  text-decoration:none;
+
+  color:#E5E5E5;
+
+  font-size:11px;
+  font-weight:600;
+
+  text-align:center;
+
+  transition:
+  background 0.2s ease,
+  color 0.2s ease,
+  transform 0.15s ease;
+
+  overflow:hidden;
+}
+
+nav .nav-item span{
+  width:100%;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+nav .nav-item:hover{
+  background:rgba(212,175,55,0.08);
+}
+
+nav .nav-item:active{
+  transform:scale(0.96);
+}
+
+nav .nav-item.active{
+  background:rgba(212,175,55,0.12);
+  color:#D4AF37;
+}
+
+@media(min-width:768px){
+
+  nav{
+    max-width:900px;
+
+    left:50%;
+    transform:translateX(-50%);
+
+    border-radius:16px 16px 0 0;
+  }
+
+  nav .nav-item{
+    font-size:12px;
+  }
+
+}
+
+@media(min-width:1200px){
+
+  nav{
+    max-width:1000px;
+  }
+
+}
+
+/* --- AUTH LINKS --- */
+  .auth-links {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* Base bouton */
+.auth-links .btn,
+.debts-btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s ease;
+  border: 1px solid transparent;
+  display: inline-block;
+}
+
+/* Connexion */
+.auth-links .btn:first-child {
+  background: transparent;
+  color: #0B5FFF;
+  border-color: #0B5FFF;
+}
+
+.auth-links .btn:first-child:hover {
+  background: #0B5FFF;
+  color: white;
+}
+
+/* Inscription */
+.auth-links .btn:last-child {
+  background: #0B5FFF;
+  color: white;
+}
+
+.auth-links .btn:last-child:hover {
+  background: #0847c2;
+}
+
+/* Dettes (style intermédiaire important) */
+.debts-btn {
+  background: #ffb020;
+  color: #1a1a1a;
+}
+
+.debts-btn:hover {
+  background: #e69a00;
+    }
+    
+    .search-box {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-box input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  width: 250px;
+  font-size: 13px;
+}
+#debug{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  z-index:999999;
+
+  max-width:90%;
+  min-width:220px;
+
+  padding:12px 16px;
+
+  border-radius:12px;
+
+  background:#111;
+  color:#fff;
+
+  font-size:13px;
+  font-weight:600;
+
+  text-align:center;
+
+  opacity:0;
+  pointer-events:none;
+
+  transition:opacity .25s ease;
+}
+
+#debug.show{
+  opacity:1;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  padding:18px;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-content{
+  width:100%;
+  max-width:420px;
+  max-height:90vh;
+  overflow-y:auto;
+  background:#fff;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.18);
+}
+
+.modal-content h3{
+  margin-bottom:16px;
+  font-size:18px;
+  color:#0B3D2E;
+}
+
+.modal-content label{
+  display:block;
+  margin:10px 0 4px;
+  font-size:13px;
+  font-weight:600;
+  color:#333;
+}
+
+.modal-content input,
+.modal-content select{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:14px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.modal-actions button{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.modal-save{
+  background:#0B3D2E;
+  color:#fff;
+}
+
+.modal-cancel{
+  background:#E5E5E5;
+  color:#111;
+}
+
+.modal-error{
+  margin-top:10px;
+  font-size:13px;
+  color:#C0392B;
+  min-height:18px;
+}
+
+.field-hidden{
+  display:none;
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+<header>
+  <h3>StockFlow - Produits</h3>
+  <div class="status" id="status">● Online</div>
+</header>
+<div class="auth-links">
+  <a href="login.html" class="btn">Connexion</a>
+  <a href="ranging.html" class="debts-btn">Top 5</a>
+</div>
+<div id="debug"></div>
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="Rechercher produit...">
+</div>
+
+<div class="container">
+
+  <div class="add-product">
+    <button class="btn-add">+ Ajouter Produit</button>
+  </div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>img</th> <!-- 🔥 image -->
+        <th>Nom</th>
+        <th>Variante</th> <!-- 🔥 ajout clé -->
+        <th>Prix Vente</th>
+        <th>Prix Min</th>
+        <th>Stock</th>
+        <th>Expiration</th>
+        <th>État</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody id="products-table">
+      <!-- Injecté dynamiquement -->
+    </tbody>
+  </table>
+</div>
+</div>
+</div>
+
+<div id="productModal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <h3 id="productModalTitle">Ajouter un produit</h3>
+
+    <label for="productName">Nom</label>
+    <input type="text" id="productName" maxlength="120" autocomplete="off">
+
+    <label for="productVariant">Variante</label>
+    <input type="text" id="productVariant" maxlength="120" autocomplete="off">
+
+    <label for="productImageUrl">URL image</label>
+    <input type="url" id="productImageUrl" maxlength="500" autocomplete="off" placeholder="https://...">
+
+    <label for="productPriceBuy">Prix achat</label>
+    <input type="number" id="productPriceBuy" min="0" step="0.01">
+
+    <label for="productPriceSell">Prix vente</label>
+    <input type="number" id="productPriceSell" min="0" step="0.01">
+
+    <label for="productPriceMin">Prix minimum autorisé</label>
+    <input type="number" id="productPriceMin" min="0" step="0.01">
+
+    <div id="productStockField">
+      <label for="productStockInitial">Stock initial</label>
+      <input type="number" id="productStockInitial" min="0" step="1">
+    </div>
+
+    <label for="productOfflineAllowed">Autoriser ventes hors connexion</label>
+    <select id="productOfflineAllowed">
+      <option value="OUI">OUI</option>
+      <option value="NON">NON</option>
+    </select>
+
+    <div id="productMinOfflineField">
+      <label for="productMinOfflineStock">Stock minimum offline</label>
+      <input type="number" id="productMinOfflineStock" min="0" step="1">
+    </div>
+
+    <div id="productExpirationFields" class="field-hidden">
+      <label>
+        <input type="checkbox" id="productHasExpiration">
+        Produit périssable
+      </label>
+
+      <div id="productExpirationDateField" class="field-hidden">
+        <label for="productExpirationDate">Date expiration (stock initial)</label>
+        <input type="date" id="productExpirationDate">
+      </div>
+    </div>
+
+    <div class="modal-error" id="productModalError"></div>
+
+    <div class="modal-actions">
+      <button type="button" id="productSaveBtn" class="modal-save">Enregistrer</button>
+      <button type="button" id="productCancelBtn" class="modal-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <h3 id="confirmModalTitle">Confirmation</h3>
+    <p id="confirmModalMessage"></p>
+    <div class="modal-actions">
+      <button type="button" id="confirmModalYes" class="modal-save">Confirmer</button>
+      <button type="button" id="confirmModalNo" class="modal-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom-nav">
+
+  <a href="index.html"
+     class="nav-item"
+     data-page="index.html">
+     🛒 Vente
+  </a>
+
+  <a href="products.html"
+     class="nav-item active"
+     data-page="settings.html">
+     📦 Produits 
+  </a>
+
+  <a href="purchases.html"
+     class="nav-item"
+     data-page="purchases.html">
+     📥 Achats
+  </a>
+
+  <a href="finances.html"
+     class="nav-item"
+     data-page="finances.html">
+     💰 Finances
+  </a>
+
+  <a href="stats.html"
+     class="nav-item"
+     data-page="stats.html">
+     📊 Stats
+  </a>
+
+  <a href="pages.html"
+     class="nav-item"
+     data-page="pages.html">
+     🔗 Navigation
+  </a>
+
+</nav>
+
+<script type="module" src="js/products.js"></script>
+<script src="js/nav.js"></script>
+
+</body>
+  </html>
+  

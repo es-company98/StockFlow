@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' 'unsafe-eval' https://www.gstatic.com https://esm.sh;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https:;
+connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.gstatic.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+frame-src 'self' https://*.firebaseapp.com https://accounts.google.com;
+worker-src 'self' blob:;
+child-src 'self' blob:;
+base-uri 'self';
+form-action 'self' https://wa.me;
+">
+<title>StockFlow - navigation</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+body{
+  background:#0f0f0f;
+  color:white;
+}
+
+/* CONTAINER */
+.container{
+  padding:20px;
+}
+
+/* TITLE */
+h2{
+  margin-bottom:15px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+/* CARD (UNIFIED CLICKABLE ELEMENT) */
+.card{
+  background:#1c1c1c;
+  padding:15px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:0.2s;
+
+  text-align:center;
+
+  /* IMPORTANT: compatibilité <div> + <a> */
+  display:block;
+  text-decoration:none;
+  color:inherit;
+}
+
+.card:hover{
+  background:#0B3D2E;
+  transform:translateY(-2px);
+}
+
+.card:active{
+  transform:scale(0.98);
+}
+
+.card h4{
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+.card p{
+  font-size:11px;
+  color:#aaa;
+}
+
+/* DISABLED / LOCKED */
+.locked{
+  background:#111;
+  opacity:0.3;
+  pointer-events:none;
+}
+
+/* BLOCK SCREEN */
+#blocked{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  font-size:18px;
+  z-index:99999;
+}
+</style>
+</head>
+
+<body>
+
+<div id="blocked">⛔ Accès refusé</div>
+
+<div class="container">
+
+<h2>📂 Navigation</h2>
+
+<div class="grid" id="pages-grid">
+
+  <!-- CORE -->
+  <a class="card" data-page="index.html" href="index.html">
+    <h4>🛒 Vente rapide</h4>
+    <p>Créer une vente</p>
+  </a>
+
+  <a class="card" data-page="products.html" href="products.html">
+    <h4>📦 Produits</h4>
+    <p>Gestion du stock</p>
+  </a>
+
+  <a class="card" data-page="stats.html" href="stats.html">
+    <h4>📊 Statistiques</h4>
+    <p>Analyse business</p>
+  </a>
+
+  <a class="card" data-page="purchases.html" href="purchases.html">
+    <h4>📥 Achats</h4>
+    <p>Entrées stock</p>
+  </a>
+
+  <!-- FINANCE (corrigé + propre regroupement) -->
+  <a class="card" data-page="finances.html" href="finances.html">
+    <h4>💰 Finances</h4>
+    <p>Dépenses • Dettes • Pertes</p>
+  </a>
+
+  <!-- SYSTEM -->
+  <a class="card" data-page="settings.html" href="settings.html">
+    <h4>⚙️ Paramètres</h4>
+    <p>Configuration</p>
+  </a>
+
+  <!-- AUTH -->
+  <a class="card" data-page="login.html" href="login.html">
+    <h4>🔐 Login</h4>
+    <p>Connexion</p>
+  </a>
+
+  <a class="card" data-page="help.html" href="help.html">
+    <h4>🤝 Support</h4>
+    <p>Obtenir de l'aide</p>
+  </a>
+
+</div>
+
+</div>
+
+<script src="js/nav.js"></script>
+<script type="module" src="js/pages.js"></script>
+
+</body>
+</html>

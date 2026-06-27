@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+
+script-src
+'self'
+https://www.gstatic.com
+https://cdn.jsdelivr.net
+https://esm.sh
+'unsafe-inline';
+
+style-src
+'self'
+'unsafe-inline'
+https://fonts.googleapis.com;
+
+img-src
+'self'
+data:
+blob:
+https://firebasestorage.googleapis.com
+https://*.googleusercontent.com
+https://images.unsplash.com;
+
+font-src
+'self'
+https://fonts.gstatic.com
+data:;
+
+connect-src
+'self'
+https://firestore.googleapis.com
+https://securetoken.googleapis.com
+https://identitytoolkit.googleapis.com
+https://firebase.googleapis.com
+https://*.firebaseio.com
+https://*.googleapis.com
+https://cdn.jsdelivr.net
+https://esm.sh
+wss://*.firebaseio.com;
+frame-src
+'self';
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+">
+
+<title>StockFlow - Stats</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+:root{
+  --bg:#F5F5F5;
+  --card:#FFFFFF;
+  --text:#111111;
+  --muted:#666666;
+  --primary:#0B3D2E;
+  --gold:#D4AF37;
+  --danger:#D92D20;
+  --warning:#F59E0B;
+  --success:#16A34A;
+  --shadow:0 3px 10px rgba(0,0,0,0.06);
+  --radius:14px;
+}
+
+html,
+body{
+  overflow-x:hidden;
+  background:var(--bg);
+  color:var(--text);
+}
+
+body{
+  padding-bottom:90px;
+}
+
+/* HEADER */
+
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+.header-left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.header-title{
+  font-size:18px;
+  font-weight:700;
+}
+
+.header-sub{
+  font-size:11px;
+  opacity:0.8;
+}
+
+.status{
+  font-size:12px;
+  color:var(--gold);
+  font-weight:bold;
+}
+
+/* FILTER BAR */
+
+.filters{
+  position:sticky;
+  top:60px;
+  z-index:90;
+  background:var(--bg);
+  padding:12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.filters-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.filter-box{
+  background:var(--card);
+  border-radius:12px;
+  padding:10px;
+  box-shadow:var(--shadow);
+}
+
+.filter-box label{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:600;
+}
+
+.filter-box select{
+  width:100%;
+  border:none;
+  background:#F7F7F7;
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+  color:var(--text);
+  outline:none;
+}
+
+/* ACTIONS */
+
+.top-actions{
+  display:flex;
+  gap:10px;
+}
+
+.action-btn{
+  flex:1;
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:700;
+  transition:0.2s;
+}
+
+.action-btn:active{
+  transform:scale(0.97);
+}
+
+.primary-btn{
+  background:var(--primary);
+  color:#fff;
+}
+
+.secondary-btn{
+  background:#fff;
+  color:var(--primary);
+  box-shadow:var(--shadow);
+}
+
+/* MAIN */
+
+main{
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* SECTION */
+
+.section{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.section-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.section-title{
+  font-size:16px;
+  font-weight:700;
+}
+
+.section-subtitle{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* KPI GRID */
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.kpi-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+  min-height:110px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.kpi-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px;
+}
+
+.kpi-label{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
+.kpi-trend{
+  font-size:11px;
+  font-weight:700;
+}
+
+.trend-up{
+  color:var(--success);
+}
+
+.trend-down{
+  color:var(--danger);
+}
+
+.kpi-value{
+  font-size:22px;
+  font-weight:800;
+  margin-top:10px;
+}
+
+.kpi-footer{
+  margin-top:10px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+/* CHARTS */
+
+.chart-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:15px;
+  box-shadow:var(--shadow);
+}
+
+.chart-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.chart-title{
+  font-size:14px;
+  font-weight:700;
+}
+
+.chart-sub{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.chart-container{
+  position:relative;
+  width:100%;
+  height:260px;
+}
+
+/* INSIGHTS */
+
+.insight-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.insight-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+
+.insight-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.insight-title{
+  font-size:14px;
+  font-weight:700;
+}
+
+.badge{
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:30px;
+  font-weight:700;
+}
+
+.badge-green{
+  background:rgba(22,163,74,0.12);
+  color:var(--success);
+}
+
+.badge-orange{
+  background:rgba(245,158,11,0.12);
+  color:var(--warning);
+}
+
+.badge-red{
+  background:rgba(217,45,32,0.12);
+  color:var(--danger);
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.list-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+
+.list-item:last-child{
+  border-bottom:none;
+  padding-bottom:0;
+}
+
+.list-left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.list-title{
+  font-size:13px;
+  font-weight:700;
+}
+
+.list-sub{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.list-value{
+  font-size:13px;
+  font-weight:700;
+}
+
+/* ALERTS */
+
+.alerts{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.alert{
+  background:#fff;
+  border-left:4px solid var(--warning);
+  border-radius:12px;
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+
+.alert.high{
+  border-left-color:var(--danger);
+}
+
+.alert.low{
+  border-left-color:var(--success);
+}
+
+.alert-title{
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:5px;
+}
+
+.alert-text{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* ACTIVITY */
+
+.activity-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+
+.activity-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.activity-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+
+.activity-item:last-child{
+  border-bottom:none;
+  padding-bottom:0;
+}
+
+.activity-left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.activity-title{
+  font-size:13px;
+  font-weight:700;
+}
+
+.activity-meta{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.activity-price{
+  font-size:13px;
+  font-weight:700;
+}
+
+/* DEBUG */
+
+#debug{
+  padding:0 10px;
+  margin-top:10px;
+  font-size:12px;
+  color:var(--danger);
+}
+
+/* NAV */
+nav{
+  position:fixed;
+  left:0;
+  bottom:0;
+
+  width:100%;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:stretch;
+  gap:8px;
+
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+
+  background:#111;
+
+  border-top:1px solid rgba(255,255,255,0.08);
+
+  z-index:1000;
+
+  overflow:hidden;
+}
+
+nav .nav-item{
+  flex:1;
+
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center;
+  align-items:center;
+
+  gap:4px;
+
+  min-height:52px;
+
+  padding:8px 4px;
+
+  border-radius:10px;
+
+  text-decoration:none;
+
+  color:#E5E5E5;
+
+  font-size:11px;
+  font-weight:600;
+
+  text-align:center;
+
+  transition:
+  background 0.2s ease,
+  color 0.2s ease,
+  transform 0.15s ease;
+
+  overflow:hidden;
+}
+
+nav .nav-item span{
+  width:100%;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+nav .nav-item:hover{
+  background:rgba(212,175,55,0.08);
+}
+
+nav .nav-item:active{
+  transform:scale(0.96);
+}
+
+nav .nav-item.active{
+  background:rgba(212,175,55,0.12);
+  color:#D4AF37;
+}
+
+@media(min-width:768px){
+
+  nav{
+    max-width:900px;
+
+    left:50%;
+    transform:translateX(-50%);
+
+    border-radius:16px 16px 0 0;
+  }
+
+  nav .nav-item{
+    font-size:12px;
+  }
+
+}
+
+@media(min-width:1200px){
+
+  nav{
+    max-width:1000px;
+  }
+
+}
+
+
+/* RESPONSIVE */
+
+@media(min-width:900px){
+
+  main{
+    max-width:1400px;
+    margin:auto;
+  }
+
+  .kpi-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .insight-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .filters-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+}
+</style>
+</head>
+<body id="statsPage">
+
+<header id="pageHeader">
+
+  <div class="header-left" id="headerLeft">
+    <div class="header-title" id="headerTitle">
+      StockFlow - Stats
+    </div>
+
+    <div class="header-sub" id="headerSubtitle">
+      Dashboard analytique business
+    </div>
+  </div>
+  <div class="status" id="status">
+    ● Online
+  </div>
+
+</header>
+
+<section class="filters" id="filtersSection">
+
+  <div class="filters-grid" id="filtersGrid">
+
+    <div class="filter-box" id="periodFilterBox">
+      <label for="statsRange">Période</label>
+
+      <select id="statsRange">
+        <option value="today">Aujourd'hui</option>
+        <option value="yesterday">Hier</option>
+        <option value="7days">7 jours</option>
+        <option value="30days">30 jours</option>
+        <option value="month">Ce mois</option>
+        <option value="year">Cette année</option>
+        <option value="custom">Personnalisé</option>
+      </select>
+    </div>
+    
+    <div class="filter-box" id="dateFromBox">
+  <label>Date début</label>
+  <input type="date" id="dateFrom">
+</div>
+
+<div class="filter-box" id="dateToBox">
+  <label>Date fin</label>
+  <input type="date" id="dateTo">
+</div>
+
+    <div class="filter-box" id="sellerFilterBox">
+      <label for="sellerFilter">Vendeur</label>
+
+      <select id="sellerFilter">
+        <option value="all">Tous les vendeurs</option>
+      </select>
+    </div>
+
+    <div class="filter-box" id="chartFilterBox">
+      <label for="chartType">Graphique</label>
+
+      <select id="chartType">
+        <option value="sales">Chiffre d'affaires</option>
+        <option value="profit">Profit</option>
+        <option value="debts">Dettes</option>
+      </select>
+    </div>
+
+    <div class="filter-box" id="analysisFilterBox">
+      <label for="sortType">Analyse</label>
+
+      <select id="sortType">
+        <option value="performance">Performance</option>
+        <option value="stock">Stock</option>
+        <option value="losses">Pertes</option>
+      </select>
+    </div>
+
+  </div>
+
+  <div class="top-actions" id="topActions">
+    <button class="action-btn primary-btn" id="applyFiltersBtn">
+      ✔ Appliquer filtres
+    </button>
+
+    <button class="action-btn secondary-btn" id="refreshBtn">
+      🔄 Actualiser
+    </button>
+
+    <button class="action-btn primary-btn" id="pdfBtn">
+      📄 Export PDF
+    </button>
+  </div>
+
+</section>
+
+<div id="debug"></div>
+
+
+<main id="statsMain">
+
+  <section class="section" id="kpiSection">
+
+    <div class="section-header" id="kpiHeader">
+
+      <div>
+        <div class="section-title">
+          Vue rapide
+        </div>
+
+        <div class="section-subtitle">
+          Performance globale de la boutique
+        </div>
+      </div>
+
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid">
+
+      <div class="kpi-card" id="salesCard">
+        <div class="kpi-top">
+          <div class="kpi-label">💰 Chiffre d'affaires</div>
+          <div class="kpi-trend trend-up" id="salesTrend">+0%</div>
+        </div>
+
+        <div class="kpi-value" id="salesValue">0$</div>
+
+        <div class="kpi-footer">
+          Comparé à la période précédente
+        </div>
+      </div>
+
+      <div class="kpi-card" id="profitCard">
+        <div class="kpi-top">
+          <div class="kpi-label">📈 Profit réel</div>
+          <div class="kpi-trend trend-up" id="profitTrend">+0%</div>
+        </div>
+
+        <div class="kpi-value" id="profitValue">0$</div>
+
+        <div class="kpi-footer">
+          Après pertes et dépenses
+        </div>
+      </div>
+
+      <div class="kpi-card" id="basketCard">
+        <div class="kpi-top">
+          <div class="kpi-label">🛒 Panier moyen</div>
+          <div class="kpi-trend trend-up" id="basketTrend">+0%</div>
+        </div>
+
+        <div class="kpi-value" id="basketValue">0$</div>
+
+        <div class="kpi-footer">
+          Moyenne par vente
+        </div>
+      </div>
+
+      <div class="kpi-card" id="marginCard">
+        <div class="kpi-top">
+          <div class="kpi-label">⚡ Marge moyenne</div>
+          <div class="kpi-trend trend-down" id="marginTrend">0%</div>
+        </div>
+
+        <div class="kpi-value" id="marginValue">0%</div>
+
+        <div class="kpi-footer">
+          Rentabilité business
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+  
+  <section class="section" id="advancedKpiSection">
+
+<div class="section-header">
+<div>
+<div class="section-title">Santé financière</div>
+<div class="section-subtitle">
+Analyse financière complète
+</div>
+</div>
+</div>
+
+<div class="kpi-grid" id="advancedKpiGrid">
+
+<div class="kpi-card" id="expensesCard">
+<div class="kpi-label">💸 Dépenses</div>
+<div class="kpi-value" id="expensesValue">0$</div>
+</div>
+
+<div class="kpi-card" id="lossesCard">
+<div class="kpi-label">📦 Pertes stock</div>
+<div class="kpi-value" id="lossesValue">0$</div>
+</div>
+
+<div class="kpi-card" id="debtsCard">
+<div class="kpi-label">🧾 Dettes clients</div>
+<div class="kpi-value" id="debtsValue">0$</div>
+</div>
+
+<div class="kpi-card" id="cashReceivedCard">
+<div class="kpi-label">💵 Argent encaissé</div>
+<div class="kpi-value" id="cashReceivedValue">0$</div>
+</div>
+
+<div class="kpi-card" id="purchaseCard">
+<div class="kpi-label">🚚 Achats stock</div>
+<div class="kpi-value" id="purchaseValue">0$</div>
+</div>
+
+<div class="kpi-card" id="netResultCard">
+<div class="kpi-label">🏦 Résultat net</div>
+<div class="kpi-value" id="netResultValue">0$</div>
+</div>
+
+</div>
+
+</section>
+
+<section class="section" id="stockHealthSection">
+
+<div class="section-header">
+<div>
+<div class="section-title">
+📊 Santé du stock
+</div>
+</div>
+</div>
+
+<div class="kpi-grid">
+
+<div class="kpi-card">
+<div class="kpi-label">
+Valeur stock
+</div>
+
+<div class="kpi-value" id="stockValue">
+0$
+</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">
+Rotation stock
+</div>
+
+<div class="kpi-value" id="stockRotation">
+0
+</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">
+Produits bloqués
+</div>
+
+<div class="kpi-value" id="blockedStock">
+0
+</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">
+Ruptures stock
+</div>
+
+<div class="kpi-value" id="stockOutCount">
+0
+</div>
+</div>
+
+</div>
+
+</section>
+
+  <section class="section" id="chartsSection">
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Tendances business</div>
+        <div class="section-subtitle">Évolution des performances</div>
+      </div>
+    </div>
+
+    <div class="chart-card" id="chartCard">
+
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Évolution des ventes</div>
+          <div class="chart-sub">Chiffre d'affaires et profit</div>
+        </div>
+      </div>
+
+      <div class="chart-container" id="chartContainer">
+        <canvas id="statsChart"></canvas>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="section" id="productsSection">
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Produits & Stock</div>
+        <div class="section-subtitle">Analyse des performances produits</div>
+      </div>
+    </div>
+
+    <div class="insight-grid" id="productsGrid">
+
+      <div class="insight-card" id="topProductsCard">
+        <div class="insight-top">
+          <div class="insight-title">🔥 Top produits</div>
+          <div class="badge badge-green">TOP</div>
+        </div>
+        <div class="list" id="topProductsList"></div>
+      </div>
+
+      <div class="insight-card" id="deadProductsCard">
+        <div class="insight-top">
+          <div class="insight-title">📉 Produits dormants</div>
+          <div class="badge badge-orange">STOCK</div>
+        </div>
+        <div class="list" id="deadProductsList"></div>
+      </div>
+
+      <div class="insight-card" id="criticalStockCard">
+        <div class="insight-top">
+          <div class="insight-title">⚠ Stock critique</div>
+          <div class="badge badge-red">ALERTE</div>
+        </div>
+        <div class="list" id="criticalStockList"></div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="section" id="sellersSection">
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Analyse vendeurs</div>
+        <div class="section-subtitle">Performance équipe commerciale</div>
+      </div>
+    </div>
+
+    <div class="insight-grid" id="sellersGrid">
+
+      <div class="insight-card" id="leaderboardCard">
+        <div class="insight-top">
+          <div class="insight-title">🏆 Leaderboard</div>
+          <div class="badge badge-green">CA</div>
+        </div>
+        <div class="list" id="leaderboardList"></div>
+      </div>
+
+      <div class="insight-card" id="weakSellerCard">
+        <div class="insight-top">
+          <div class="insight-title">📊 Vendeurs faibles</div>
+          <div class="badge badge-orange">LOW</div>
+        </div>
+        <div class="list" id="weakSellerList"></div>
+      </div>
+
+    </div>
+
+  </section>
+  
+  <section class="section" id="debtsSection">
+
+<div class="section-header">
+<div>
+<div class="section-title">
+🧾 Gestion dettes
+</div>
+
+<div class="section-subtitle">
+Clients non soldés
+</div>
+</div>
+</div>
+
+<div class="insight-card">
+
+<div class="list" id="topDebtorsList"></div>
+
+</div>
+
+</section>
+
+
+  <section class="section" id="alertsSection">
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Alertes système</div>
+        <div class="section-subtitle">Éléments nécessitant attention</div>
+      </div>
+    </div>
+
+    <div class="alerts" id="alertsContainer">
+
+      <div class="alert" id="expenseAlertCard">
+        <div class="alert-title">💸 Dépenses anormales</div>
+        <div class="alert-text" id="expenseAlertText">
+          Analyse en cours...
+        </div>
+      </div>
+
+      <div class="alert low" id="businessAlertCard">
+        <div class="alert-title">📈 Opportunités business</div>
+        <div class="alert-text" id="businessAlertText">
+          Analyse en cours...
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+  
+  <section class="section" id="purchaseSection">
+
+<div class="section-header">
+<div>
+<div class="section-title">
+🚚 Achats fournisseurs
+</div>
+</div>
+</div>
+
+<div class="activity-card">
+
+<div class="activity-list" id="purchaseList"></div>
+
+</div>
+
+</section>
+
+  <section class="section" id="activitySection">
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Activité récente</div>
+        <div class="section-subtitle">Dernières opérations système</div>
+      </div>
+    </div>
+
+    <div class="activity-card" id="activityCard">
+      <div class="activity-list" id="recentActivityList"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<nav id="bottomNav">
+
+  <a href="index.html" class="nav-item" data-page="index.html" id="navSales">
+    🛒 Vente
+  </a>
+
+  <a href="products.html" class="nav-item" data-page="products.html" id="navProducts">
+    📦 Produits
+  </a>
+
+  <a href="loader.html" class="nav-item" data-page="loader.html" id="navQuickView">
+    📩 vue rapide
+  </a>
+
+  <a href="stats.html" class="nav-item active" data-page="stats.html" id="navStats">
+    📊 Stats
+  </a>
+
+  <a href="pages.html" class="nav-item" data-page="pages.html" id="navPages">
+    🔗 Navigation
+  </a>
+
+</nav>
+
+<script src="js/nav.js"></script>
+<script type="module" src="js/stats.js"></script>
+
+</body>
+
+</html>

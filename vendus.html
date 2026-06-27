@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0B3D2E">
+<title>Produits Vendus - StockFlow</title><style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#F5F5F5;color:#111;padding-bottom:90px}
+header{background:#0B3D2E;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
+header h3{font-size:18px}
+.status{font-size:12px;color:#D4AF37}
+
+.filters{padding:10px;display:grid;gap:10px}
+.filter-label{
+font-size:11px;
+font-weight:600;
+color:#555;
+margin-bottom:4px;
+}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filters input,.filters select{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#fff;
+box-shadow:0 2px 5px rgba(0,0,0,.08)
+}
+
+#searchActions{
+  display:flex;
+  gap:10px;
+  padding:10px;
+}
+
+#searchBtn,
+#resetBtn{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+#searchBtn{
+  background:#0B3D2E;
+  color:#FFF;
+}
+
+#resetBtn{
+  background:#E5E5E5;
+  color:#111;
+}
+
+.kpis{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+padding:10px;
+}
+
+.kpi{
+background:#fff;
+padding:15px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.kpi-title{
+font-size:12px;
+color:#777;
+margin-bottom:6px;
+}
+
+.kpi-value{
+font-size:20px;
+font-weight:bold;
+color:#0B3D2E;
+}
+
+.sales-list{
+padding:10px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.sale-card{
+background:#fff;
+border-radius:12px;
+padding:14px;
+box-shadow:0 3px 8px rgba(0,0,0,.08);
+}
+
+.sale-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:8px;
+}
+
+.sale-product{
+font-weight:bold;
+font-size:15px;
+}
+
+.sale-price{
+font-weight:bold;
+color:#0B3D2E;
+}
+
+.sale-meta{
+font-size:12px;
+color:#666;
+margin-top:4px;
+}
+
+.badge{
+display:inline-block;
+padding:4px 8px;
+border-radius:20px;
+font-size:11px;
+margin-top:8px;
+}
+
+.badge-paid{
+background:#DFF7E8;
+color:#0B7A3E;
+}
+
+.badge-partial{
+background:#FFF2D8;
+color:#C17D00;
+}
+
+.badge-cancelled{
+background:#FDE8E8;
+color:#B42318;
+}
+
+.sale-cancelled{
+opacity:0.75;
+}
+
+.result-count{
+padding:0 10px 6px;
+font-size:12px;
+color:#666;
+}
+
+.empty{
+text-align:center;
+padding:40px 20px;
+color:#666;
+}
+
+nav{
+position:fixed;
+left:0;
+bottom:0;
+width:100%;
+display:flex;
+background:#111;
+padding:8px;
+gap:6px;
+z-index:1000;
+}
+
+.nav-item{
+flex:1;
+text-decoration:none;
+color:#E5E5E5;
+font-size:11px;
+padding:8px 4px;
+text-align:center;
+border-radius:8px;
+}
+
+.nav-item.active{
+background:rgba(212,175,55,.15);
+color:#D4AF37;
+}
+</style></head><body><header id="header">
+<h3>Produits Vendus</h3>
+<div class="status" id="status">● Online</div>
+</header><section class="filters" id="filters">
+<div class="filter-group">
+<label class="filter-label" for="searchInput">Recherche</label>
+<input id="searchInput" type="text" placeholder="Produit, client, vendeur…">
+</div>
+<div class="filter-group">
+<label class="filter-label" for="productFilter">Produit</label>
+<select id="productFilter">
+<option value="">Tous les produits</option>
+</select>
+</div>
+<div class="filter-group">
+<label class="filter-label" for="sellerFilter">Vendeur</label>
+<select id="sellerFilter">
+<option value="">Tous les vendeurs</option>
+</select>
+</div>
+<div class="filter-group">
+<label class="filter-label" for="paymentFilter">Paiement</label>
+<select id="paymentFilter">
+<option value="">Tous paiements</option>
+<option value="paid">Payé</option>
+<option value="partial">Dette</option>
+</select>
+</div>
+<div class="filter-group">
+<label class="filter-label" for="statusFilter">Statut vente</label>
+<select id="statusFilter">
+<option value="">Toutes</option>
+<option value="active">Active</option>
+<option value="cancelled">Annulée</option>
+</select>
+</div>
+<div class="filter-group">
+<label class="filter-label" for="dateFrom">Date début</label>
+<input id="dateFrom" type="date">
+</div>
+<div class="filter-group">
+<label class="filter-label" for="dateTo">Date fin</label>
+<input id="dateTo" type="date">
+</div>
+
+<div id="searchActions">
+  <button id="searchBtn" type="button">Appliquer dates</button>
+  <button id="resetBtn" type="button">Réinitialiser</button>
+</div>
+</section>
+
+<p class="result-count" id="resultCount">0 ligne(s)</p>
+
+<section class="kpis"><div class="kpi">
+
+<div class="kpi-title">Produits vendus</div>
+<div class="kpi-value" id="soldCount">0</div>
+</div><div class="kpi">
+<div class="kpi-title">Montant total</div>
+<div class="kpi-value" id="salesTotal">0</div>
+</div><div class="kpi">
+<div class="kpi-title">Clients</div>
+<div class="kpi-value" id="clientsCount">0</div>
+</div><div class="kpi">
+<div class="kpi-title">Dettes</div>
+<div class="kpi-value" id="debtTotal">0</div>
+</div></section><section class="sales-list" id="salesList"></section><nav id="bottomNav"><a href="index.html" class="nav-item" data-page="index.html">
+🛒 Vente
+</a><a href="products.html" class="nav-item" data-page="products.html">
+📦 Produits
+</a><a href="vendus.html" class="nav-item active" data-page="vendus.html">
+📋 Ventes
+</a><a href="finances.html" class="nav-item" data-page="finances.html">
+💰 Finances
+</a><a href="stats.html" class="nav-item" data-page="stats.html">
+📊 Stats
+</a></nav><script src="js/nav.js"></script><script type="module" src="js/vendus.js"></script></body>
+</html>
