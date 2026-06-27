@@ -12,6 +12,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  signOut,
   setPersistence,
   browserLocalPersistence
 } from "./auth.js";
@@ -33,7 +34,8 @@ const MAX_USERS = 5;
 
 initPasswordToggles();
 
-async function checkUserLimit() {
+async function readMetaForSignup() {
+  console.log("[signup] getDoc system/meta (auth uid:", auth.currentUser?.uid, ")");
   const metaRef = doc(db, "system", "meta");
   const metaSnap = await getDoc(metaRef);
 
@@ -70,13 +72,16 @@ signupForm?.addEventListener("submit", async e => {
   }
 
   try {
-    const { metaRef, usersCount } = await checkUserLimit();
-
+    console.log("[signup] createUserWithEmailAndPassword", { email });
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
+    console.log("[signup] Auth OK, uid:", uid);
+
+    const { metaRef, usersCount } = await readMetaForSignup();
 
     const batch = writeBatch(db);
 
+    console.log("[signup] batch.set users/", uid);
     batch.set(doc(db, "users", uid), {
       userId: uid,
       name: fullName,
@@ -86,11 +91,13 @@ signupForm?.addEventListener("submit", async e => {
       createdAt: Timestamp.now()
     });
 
+    console.log("[signup] batch.update system/meta usersCount:", usersCount + 1);
     batch.update(metaRef, {
       usersCount: usersCount + 1
     });
 
     await batch.commit();
+    console.log("[signup] batch.commit OK");
 
     await writeLog({
       userId: uid,
@@ -98,10 +105,11 @@ signupForm?.addEventListener("submit", async e => {
       details: { email, role: "seller" }
     });
 
+    await signOut(auth);
     alert("Compte créé ! Connectez-vous.");
     window.location.replace("login.html");
   } catch (err) {
-    console.error(err);
+    console.error("[signup] erreur:", err?.code || err?.message, err);
     alert(authErrorMessage(err, "Erreur création compte"));
   }
 });
@@ -109,18 +117,22 @@ signupForm?.addEventListener("submit", async e => {
 googleSignupBtn?.addEventListener("click", async () => {
   try {
     await setPersistence(auth, browserLocalPersistence);
-    await checkUserLimit();
 
+    console.log("[signup] signInWithPopup Google");
     const result = await signInWithPopup(auth, googleProvider);
+    console.log("[signup] Google OK, uid:", result.user.uid);
+
     const isActive = document.getElementById("isActive")?.checked ?? true;
     const userData = await ensureFirestoreUser(result.user, { isActive });
 
     if (!userData?.isActive) {
+      await signOut(auth);
       alert("Compte désactivé");
       return;
     }
 
     if (!isAllowedRole(userData.role)) {
+      await signOut(auth);
       alert("Accès refusé : rôle non autorisé");
       return;
     }
@@ -128,7 +140,7 @@ googleSignupBtn?.addEventListener("click", async () => {
     await completeLogin(userData.userId || userData.id, userData.role, "google_signup");
     window.location.replace("index.html");
   } catch (err) {
-    console.error(err);
+    console.error("[signup] Google erreur:", err?.code || err?.message, err);
     alert(authErrorMessage(err, "Erreur inscription Google"));
   }
 });
